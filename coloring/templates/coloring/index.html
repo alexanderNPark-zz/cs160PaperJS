@@ -5,7 +5,9 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   	<title>P3 Coloring</title>
-
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="{% static 'coloring/css/styledComps.css' %}" />
+  
 	<script type="text/javascript" src="{% static 'coloring/vendors/jquery/jquery-3.3.1.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'coloring/vendors/paper/paper-full.min.js' %}"></script>
 
@@ -18,7 +20,6 @@
 			position: absolute;
 			top: 0;
 		}
-
 		.swatch {
 			width: 24px;
 			height: 24px;
@@ -27,7 +28,6 @@
 			border-radius: 12px;
 			margin: 3px;
 		}
-
 		#myCanvas {
 			padding-left: 0;
 		    padding-right: 0;
@@ -48,19 +48,15 @@
 				lastClicked: null,
 				filePath: '/static/coloring/images/mandala-freepik.svg'
 			};	
-
    
 		// Draw the view now:
-
-
       
 			// color palette
 			var cp = {
-				history: ["#000000", "#FF0000"], // black selected by default
+				history: ["rgb(0,0,0)", 'rgb(255,0,0)'], // black selected by default
 				options: [],
 				$container: $('#color-palette')
 			}
-
 			// your rectangle gradient interaction goes in this function
 			// you may also add code outside of the function (e.g., global variables)
 			function myGradientInteraction(){
@@ -87,7 +83,6 @@
             
            } 
 				}
-
 				tool.onMouseUp = function (event) {
           pos = event.point
            if(!(pos.x>250 && pos.x<500 && pos.y>320 && pos.y<500)){
@@ -104,25 +99,210 @@
              paper.view.draw()
 				  }
 			}
-
+      
+      
+      
+      
+      
+      var opacityValue = 0;
+      var panelShown=true;
+      var itemToChange = null;
+      
+      var $opacityDiv = $('<div id="opacity" class="row"></div>');
+      var $opacityText = $('<span id="opacityText" class="row">Opacity:</span>');
+      var $opacity = $('<input type="range" min="1" max="100" value="50" id="sliders" class="slider">')
+      
+      var $currentSpan = $('<div id="currentColorSpan" class="row"></div>')
+      var $colorText = $('<span id="colorText" class="col-3">Selected Color</span>');
+      var $colorBox = $('<span id="colorBox" class="col-2"></span>');
+      var $colorSpanfiller = $('<span class="col-7"></span>');
+      
+      var $checkBoxRow = $('<div id="checkBoxRow" class="row"></div>');
+      var $checkBoxCol = $('<div id="checkBoxCol" class="col"</div>');
+      var $checkBox = $('<input type="checkbox" id="borderIncluded">');
+      var $checkBoxText = $('<span id="borderText" class="col">Include Border:</span>')
+      
+      var $saveButton = $('<div id="SaveButton" class="row"></div>');
+      
+      
+      
+      var $input = $('<button id="canvasImageSave" download="myPainting.png" class="btn" >Save</button> ');
+      
+      
+      
+      //$opacity.appendTo($("body"));
+      //$opacity.show();
+      
 			// your custom interaction goes here!
 			// you may replace everything
 			function myCustomInteraction() {
+        $('body').on('contextmenu', '#myCanvas', function(e){ return false; });
+        
 				var tool = new paper.Tool();
+        $colorText.appendTo($currentSpan)
+        $colorBox.appendTo($currentSpan);
+        $colorSpanfiller.appendTo($currentSpan)
+        $currentSpan.appendTo($("#optionsContainer"));
+         $("#optionsContainer").append("<br><br>")
+        
+        $opacityDiv.html($opacity)
+        $opacityText.appendTo($("#optionsContainer"));
+        $opacityDiv.appendTo($("#optionsContainer"));
+        
+        $checkBoxCol.html($checkBox)
+        $checkBoxText.appendTo($checkBoxRow)
+        $checkBoxCol.appendTo($checkBoxRow)
+        $checkBoxRow.appendTo($("#optionsContainer"))
+        
+        
+        //$('#optionsContainer').hide();
+        $("#optionsContainer").append("<br><br><br><br><br>")
+        $saveButton.html($input)
+        $saveButton.appendTo($("#optionsContainer"));
+        
+        
+        
+        $input.on("click", function(ev){
+             
+            if(itemToChange==null){
+                 
+              }else{
+                itemToChange.strokeWidth = 1;
+                itemToChange=null;
+                paper.view.draw()
+                
+            }
+          
+          $opacityText.hide()
+          $opacity.hide()
+          $checkBoxRow.hide()
+            
+            var canvas = document.getElementById("myCanvas");
+            var link = document.createElement('a');
+            link.download = "myPainting.png";
+            link.href = canvas.toDataURL("image/png", 1.0).replace("image/png", "image/octet-stream");;
+            link.click();
+            $input.html("Saved")
+            $input.css("backgroundColor","rgb(211,211,211)");
+            $input.prop('disabled', true);
+       });
+        
+        
+      $("#myCanvas").mouseover(function(ev){
+         
+         $("#myCanvas").css("cursor","url('/static/coloring/images/pencilIco.png'), auto")
+        
+      })
+        
+     
        
+        
+      $opacity[0].oninput = function() {
+          colorContent = itemToChange.fillColor;
+          
+        
+          opacityValue = this.value;
+        
+          if($("#borderIncluded").is(':checked')){
+              itemToChange.opacity = this.value/100;
+          }else{
+             colorContent['alpha'] = this.value/100
+             itemToChange.fillColor = colorContent;
+          }
+          //itemToChange.opacity = this.value/100;
+          
+          
+      } 
+      
+      
+      
+      $("#slideToggle").on('click', function(ev){
+        //alert("clicked toggle")
+          if(panelShown){
+            //$('#optionsContainer').animate({width:"0%"});
+            
+          // $('#optionsContainer').animate({width: 'toggle'}, "slow");
+            // $('#optionsContainer').slideToggle(500, function () {})
+            $( "#optionsContainer" ).toggle('slide', function(){
+              $("#toggleBar").attr("src","/static/coloring/images/expandOut.png");
+            });
+            
+            
+          }else{
+            //$('#optionsContainer').slideToggle(500, function () {})
+            $( "#optionsContainer" ).toggle('slide');
+            $("#toggleBar").attr("src","/static/coloring/images/expandIn.png");
+          }
+          panelShown=!panelShown;
+          
+        //$('#optionsContainer').hide("slow")
+        
+      });
+      $opacityText.hide()
+      $opacity.hide()
+      $checkBoxRow.hide()
+        
+       
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+  
+        
+        
 				tool.onMouseDown = function (event) {
-             var hit = mandala.item.hitTest(event.point, { tolerance: 10, fill: true });
+            $input.html("Save")
+            $input.css("backgroundColor","	rgb(0,0,255)");
+            $input.prop('disabled', false);
+            
+            var hit = mandala.item.hitTest(event.point, { tolerance: 10, fill: true });
 				    if (hit) {
+              if(itemToChange==null){
+                
+              }else{
+                itemToChange.strokeWidth = 1;
+              }
 				        hit.item.fillColor = cp.history[cp.history.length - 1];
+                $opacity.show()
+                $opacityText.show()
+                $checkBoxRow.show()
+                $opacity.val(hit.item.opacity*100)
+                itemToChange = hit.item;
+               
+                itemToChange.strokeWidth = 4;
+                
 				    }
 				    
 				}
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 			}
-
-
 			// create a color palette with the given colors
 			function createColorPalette(colors){
-
 				// create a swatch for each color
 				for (var i = colors.length - 1; i >= 0; i--) {
 					var $swatch = $("<div>").css("background-color", colors[i])
@@ -130,13 +310,12 @@
 					$swatch.click(function(){
 						// add color to the color palette history
 					  	cp.history.push($(this).css("background-color"));
-           
+              $("#colorBox").css("backgroundColor", $(this).css("background-color"));
               
 					});
 					cp.$container.append($swatch);
 				}
 			}
-
 			// loads a set of colors from a json to create a color palette
 			function getColorsCreatePalette(){
 				cp.$container.html(" ");
@@ -148,15 +327,12 @@
 					createColorPalette(cp.options);
 				});
 			}
-
 			function init(custom){
 				paper.setup(canvas);
 				getColorsCreatePalette();
-
 				paper.project.importSVG(mandala.filePath, function(item) { 
 					mandala.item = item._children["design-freepik"];
 				    paper.project.insertLayer(0,mandala.item);
-
 				    if (custom) {
 				    	myCustomInteraction();	
 				    } else {
@@ -165,7 +341,6 @@
 					
 				}); 
 			}
-
 			// To see your myGradientInteraction version visit: 
 			// http://<your url>:8000/coloring/?type=gradient
 			// To see your myCustomInteraction version visit: 
@@ -180,8 +355,30 @@
 	</script>
 </head>
 <body>	
+  <div id="fullContainer" class="container">
+    <div id="outerRow" class="row">
+      <div id="optionsContainer"  class="col-4">
+        <div id="color-palette" class='row'></div>
+        <br><br>
+        <br>
 
-	<canvas id="myCanvas" width="750px" height="750px"></canvas>
-	<div id="color-palette"></div>
+      </div>
+      <br><br>
+        <br>
+      <div id="slideToggle" class="col-1">
+        <img src='/static/coloring/images/expandIn.png' id='toggleBar'/>
+      </div>
+    
+      <div id="canvasContain" class="col-7">
+        <canvas id="myCanvas" width="750px" height="750px"></canvas>
+      </div>
+
+    
+    </div>
+    
+  </div>
+  
+  
+	
 </body>
 </html>
